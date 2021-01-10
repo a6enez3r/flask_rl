@@ -34,6 +34,11 @@ def client():
     @lm.limit(limit=LIMIT, period=PERIOD)
     def home():
         return "home"
+    
+    @app.route("/random")
+    @lm.limit(limit=LIMIT, period=PERIOD)
+    def random():
+        return "random"
     # yield test client
     yield app.test_client()
     # limiter db path
