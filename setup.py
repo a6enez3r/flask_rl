@@ -21,7 +21,7 @@ setup(
     include_package_data=True,
     platforms='any',
     install_requires=[
-        "Flask==1.1.2",
+        "Flask==2.0.1",
         "pickleDB==0.9.2",
     ],
     classifiers=[
