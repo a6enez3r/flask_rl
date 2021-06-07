@@ -4,7 +4,7 @@ Flask==1.1.2
 pickleDB==0.9.2
 # testing
 pytest==6.2.4
-pytest-cov==2.10.1
+pytest-cov==2.12.1
 # linting
 black==21.5b2
 pylint==2.8.3
