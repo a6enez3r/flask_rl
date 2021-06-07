@@ -23,7 +23,6 @@ setup(
     install_requires=[
         "Flask==1.1.2",
         "pickleDB==0.9.2",
-        "pytest==6.2.1"
     ],
     classifiers=[
         'Environment :: Web Environment',

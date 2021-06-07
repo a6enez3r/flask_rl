@@ -1,7 +1,11 @@
+"""
+    test_flask_rl.py: actual tests for flask_rl
+"""
 
-def test_limiter_basic(client, limit, period):
+
+def test_limiter_basic(client, limit):
     """
-        test limiter returns 429 status code if limit exceeded
+    test limiter returns 429 status code if limit exceeded
     """
     # make get requests more than the limit
     for _ in range(limit * 2):
@@ -12,10 +16,11 @@ def test_limiter_basic(client, limit, period):
     # assert response is valid
     assert response.status_code == 429
 
-def test_limiter_other_route(client, limit, period):
+
+def test_limiter_other_route(client, limit):
     """
-        test limiter returns 200 on route where limit not 
-        exceeded & returns 429 status code if limit exceeded
+    test limiter returns 200 on route where limit not
+    exceeded & returns 429 status code if limit exceeded
     """
     # make get requests more than the limit
     for _ in range(limit * 2):

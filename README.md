@@ -12,17 +12,17 @@ you can use the rate limiter as
   from flask_rl import Limiter
 
   app = Flask(__name__)
-  lm = Limiter(app)
-  # or
-  # lm = Limiter()
-  # lm.init_app(app)
+  limiter = Limiter(app)
+  # or if you are following the application factory pattern
+  # limiter = Limiter()
+  # limiter.init_app(app)
 
   @app.route("/")
-  @lm.limit(limit=5, period=60)
+  @limiter.limit(limit=5, period=60) # limit to 5 requests / minute
   def home():
       return "Home"
 
   if __name__ == "__main__":
       app.run()
 ```
-will limit calls to the endpoint to 5 in the past 60 seconds and will return a 429 response
+will limit calls to the endpoint to no more than 5 requests in a 60 second window and will return a 429 response
