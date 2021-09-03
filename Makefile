@@ -8,9 +8,15 @@ endif
 ifeq ($(COMMIT_MESSAGE),)
 COMMIT_MESSAGE := default commit message
 endif
+ifeq ($(BRANCH_NAME),)
+BRANCH_NAME := main
+endif
 
 save:
 	@echo "saving..." && git add . && git commit -m "${COMMIT_MESSAGE}"
+
+save-remote:
+	@echo "saving to remote..." && git push origin ${BRANCH_NAME}
 
 release:
 	git tag -d ${VERSION} || : && git push --delete origin ${VERSION} || : && git tag -a ${VERSION} -m "latest" && git push origin --tags
