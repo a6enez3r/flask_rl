@@ -6,6 +6,8 @@ flask rate limiter
 """
 from setuptools import setup
 
+with open("requirements/prod.txt") as f:
+    requirements = f.read().splitlines()
 
 setup(
     name='Flask-RL',
@@ -20,10 +22,7 @@ setup(
     zip_safe=False,
     include_package_data=True,
     platforms='any',
-    install_requires=[
-        "Flask==2.0.1",
-        "pickleDB==0.9.2",
-    ],
+    install_requires=requirements,
     classifiers=[
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
