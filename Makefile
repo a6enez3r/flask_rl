@@ -5,15 +5,15 @@ MODULE_TEST_NAME := tests
 ifeq ($(VERSION),)
 VERSION := 0.0.1
 endif
-ifeq ($(COMMIT_MESSAGE),)
-COMMIT_MESSAGE := default commit message
+ifeq ($(commit_message),)
+commit_message := default commit message
 endif
 ifeq ($(BRANCH_NAME),)
 BRANCH_NAME := main
 endif
 
 save:
-	@echo "saving..." && git add . && git commit -m "${COMMIT_MESSAGE}"
+	@echo "saving..." && git add . && git commit -m "${commit_message}"
 
 save-remote:
 	@echo "saving to remote..." && git push origin ${BRANCH_NAME}
