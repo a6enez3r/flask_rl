@@ -1,9 +1,13 @@
 """
     flask_rl.py: simple flask rate limiter
 
-    uses
-        - pickledb: for storing access times
-        - window based approach to check limits
+    ***
+    **uses**
+    ***
+
+    pickledb: for storing access times
+
+    window based approach to check limits
 """
 import datetime
 from functools import wraps
@@ -12,18 +16,24 @@ import pickledb
 from flask import _app_ctx_stack, request, abort
 
 
-class Limiter:
+class FlaskRL:
     """
-    rate limiter for Flask
+    rate limiter extension for Flask that uses windows-based approach
+    to limit access to routes. in the backend it uses pickleDB to store
+    ip addresses & their access times. the name of this pickleDB file
+    can be configured at initialization
     """
 
     def __init__(self, app=None, dbname="limiter.db"):
         """
         initialize rate limiter
 
-        params:
-            - app: flask WSGI instance
-            - dbname: name of db used to store access times
+        ***
+        **parameters**
+        ***
+
+        *app* : flask app
+        *dbname* : name of pickle db used to store access times
         """
         self.app = app
         self.dbname = dbname
@@ -34,48 +44,84 @@ class Limiter:
 
     def init_app(self, app):
         """
-        initialize limiter extension with flask
+        initialize rate limiter class as a flask extension
 
-        params:
-            - app: flask WSGI instance
+        adds the name of the cache db into the flask app configuration
+        using the config var `FRL_DB`
+
+        ***
+        **parameters**
+        ***
+
+        *app*: flask app
+
+        ***
         """
         # add name of limiter db to the flask app config
-        app.config.setdefault("LIMITER_DB", self.dbname)
-        # pass the extension teardown method to the app
-        app.teardown_appcontext(self.teardown)
+        app.config.setdefault("FRL_DB", self.dbname)
+        app.teardown_appcontext(self._teardown)
 
-    def create(self):
+    def _create(self):
         """
         get pickledb instance
         """
         # return pickle db instance
         return self.cache
 
-    def teardown(self, exception):  # pylint: disable=unused-argument,no-self-use
+    def _teardown(self, exception):  # pylint: disable=unused-argument,no-self-use
         """
-        teardown limiter
+        _teardown limiter
         """
         # get app context
         ctx = _app_ctx_stack.top
         # if app has limiter db in context
-        if hasattr(ctx, "limiter_db"):
+        if hasattr(ctx, "frl_db"):
             # dump / save
             ctx.limiter_db.dump()
 
     def connection(self):  # pylint: disable=inconsistent-return-statements
         """
         get connection to the limiter db
+
+        ***
+        **usage**
+        ***
+        you can use this method to access the IP addresses & access times
+        stored in pickleDB
+
+            flask_rl = FlaskRL()
+
+            @flask_rl.limit(limit=5, period=60)
+            @app.route("/ips", methods=["GET"])
+            def ips():
+                cache = flask_rl.connection()
+                return cache.keys() # <- will return all the IP addresses that have
+                                    #    accessed the app
+
+        once you have a list of all the ip addresses you can get the access times
+        for a specific IP address using
+
+            flask_rl = FlaskRL()
+
+            @flask_rl.limit(limit=5, period=60)
+            @app.route("/<str:ip_address>", methods=["GET"])
+            def access_times(ip_address):
+                cache = flask_rl.connection()
+                return cache(ip_address)
+
+        this will return a `key:value` tuple of the form `(<route_name>:<list of access_times>)`
+        ***
         """
         # get app context
         ctx = _app_ctx_stack.top
         if ctx is not None:
             # if app doesn't have limiter db in context
-            if not hasattr(ctx, "limiter_db"):
+            if not hasattr(ctx, "frl_db"):
                 # add limiter db to context
-                ctx.limiter_db = self.create()
+                ctx.limiter_db = self._create()
             return ctx.limiter_db
 
-    def check_limit_reached(self, str_access_times, limit, period):
+    def _peaked(self, str_access_times, limit, period):
         """
         check if a given set of access times exceed the
         specified limit within a given period
@@ -103,11 +149,16 @@ class Limiter:
 
     def limit(self, limit=None, period=None):
         """
-        rate limiting decorator functions
+        rate limiting decorator for a flask endpoint
 
-        params:
-            - limit: number of requests allowed
-            - period: checking time window (in seconds)
+        ***
+        **parameters**
+        ***
+
+        *limit* : number of request allowed in a given period
+
+        *period* : how often an endpoint
+        ***
         """
 
         def decorator(func):
@@ -146,9 +197,7 @@ class Limiter:
                     # get access times
                     str_access_times = cache.dget(ip_address, route_name)
                     # convert access times to datetime
-                    limit_reached = self.check_limit_reached(
-                        str_access_times, limit, period
-                    )
+                    limit_reached = self._peaked(str_access_times, limit, period)
                     # if limit exceeded
                     if limit_reached:
                         # abort with too many requests

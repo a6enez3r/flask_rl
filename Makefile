@@ -29,3 +29,11 @@ format:
 
 lint:
 	@echo "linting..." && python3 -m pylint ${MODULE_NAME} && python3 -m pylint ${MODULE_TEST_NAME}
+
+prettify: format lint
+
+docs-build:
+	@echo "building docs..." && python3 -m pdoc ${MODULE_NAME} -o docs
+
+docs-serve:
+	python3 -m pdoc ${MODULE_NAME}
