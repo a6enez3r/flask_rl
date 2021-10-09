@@ -4,7 +4,7 @@ flask rate limiting extension
 ## quickstart
 install flask_rl
 ```
-  pip3 install https://github.com/abmamo/flask_rl/archive/v0.0.1.tar.gz
+  pip install https://github.com/abmamo/flask_rl/archive/0.0.1.tar.gz
 ```
 you can use the rate limiter as
 ```
