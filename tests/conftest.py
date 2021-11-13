@@ -44,7 +44,11 @@ def client():
     # create flask app
     app = Flask(__name__)
     # init flask_rl
-    flask_rl = FlaskRL(app, dbname="testing.flask_rl.db")
+    flask_rl = FlaskRL(
+        app,
+        dbname="testing.flask_rl.db",
+        webhook_url=os.environ.get("TEST_WEBHOOK_URL", None)
+    )
     # define web app with flask_rl
     @app.route("/")
     @flask_rl.limit(limit=LIMIT, period=PERIOD)

@@ -12,7 +12,9 @@
 import datetime
 from functools import wraps
 
+import geocoder
 import pickledb
+import notifiers
 from flask import _app_ctx_stack, request, abort
 
 
@@ -24,7 +26,7 @@ class FlaskRL:
     can be configured at initialization
     """
 
-    def __init__(self, app=None, dbname="limiter.db"):
+    def __init__(self, app=None, dbname="limiter.db", webhook_url=None):
         """
         initialize rate limiter
 
@@ -39,6 +41,7 @@ class FlaskRL:
         self.dbname = dbname
         self.cache = pickledb.load(dbname, True)
         self.date_format = "%m/%d/%Y, %H:%M:%S"
+        self.webhook_url = webhook_url
         if app is not None:
             self.init_app(app)
 
@@ -59,6 +62,7 @@ class FlaskRL:
         """
         # add name of limiter db to the flask app config
         app.config.setdefault("FRL_DB", self.dbname)
+        app.config.setdefault("WEBHOOK_URL", self.webhook_url)
         app.teardown_appcontext(self._teardown)
 
     def _create(self):
@@ -166,8 +170,9 @@ class FlaskRL:
             def limiter_function(*args, **kwargs):
                 # get IP from request
                 ip_address = str(request.remote_addr)
+                geoloc = geocoder.ip(ip_address)
                 # get route name from request
-                route_name = str(request.url_rule).replace("/", "")
+                route_name = str(request.url_rule)
                 # get cache / store
                 cache = self.connection()
                 # if ip doesn't exists in cache / store
@@ -200,6 +205,23 @@ class FlaskRL:
                     limit_reached = self._peaked(str_access_times, limit, period)
                     # if limit exceeded
                     if limit_reached:
+                        with self.app.app_context():
+                            if self.webhook_url is not None:
+                                slack = notifiers.get_notifier("slack")
+                                message = f"""
+                                    flask_rl: excess rate limit warning
+
+                                    ip: {ip_address}
+
+                                    route: {str(request.url_rule)}
+
+                                    country: {geoloc.country}
+
+                                    city: {geoloc.city}
+                                """
+                                slack.notify(
+                                    webhook_url=self.webhook_url, message=message
+                                )
                         # abort with too many requests
                         abort(429)
                 return func(*args, **kwargs)
