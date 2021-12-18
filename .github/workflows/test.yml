@@ -15,9 +15,9 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: install
+      - name: deps
         run: |
-          make install
+          make deps-dev
 
       - name: lint
         run: |

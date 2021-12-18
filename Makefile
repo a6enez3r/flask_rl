@@ -74,9 +74,12 @@ pull-remote:
 	@echo "pulling from remote..."
 	@git merge origin ${branch}
 
-## create new tag, delete if there is an existing
+## create new tag, recreate if it exists
 tag:
-	git tag -d ${version} || : && git push --delete origin ${version} || : && git tag -a ${version} -m "latest" && git push origin --tags
+	git tag -d ${version} || : 
+	git push --delete origin ${version} || : 
+	git tag -a ${version} -m "latest" 
+	git push origin --tags
 #######
 
 # DEV #
@@ -88,32 +91,33 @@ pkg-build:
 pkg-install:
 	@echo "installing..." && python3 setup.py install
 
-## install package dependencies
+## install package dependencies [dev]
 deps-dev:
 	@python3 -m pip install --upgrade pip setuptools wheel
 	@if [ -f requirements/dev.txt ]; then pip install -r requirements/dev.txt; fi
 
+## install package dependencies [prod]
 deps-prod:
 	@python3 -m pip install --upgrade pip setuptools wheel
 	@if [ -f requirements/prod.txt ]; then pip install -r requirements/prod.txt; fi
 
-## run tests[pytest]
+## run tests [pytest]
 test:
 	@echo "running tests..."
 	@python3 -m pytest --cov-report term-missing --cov=${mn} ${tn} ${opts}
 
-## run test profiling[pytest-profiling]
+## run test profiling [pytest-profiling]
 profile:
 	@echo "running tests..."
 	@python3 -m pytest --profile ${tn} ${opts}
 
-## run formatting[black]
+## run formatting [black]
 format:
 	@echo "formatting..."
 	@python3 -m black ${mn}
 	@python3 -m black ${tn}
 
-## run linting[pylint]
+## run linting [pylint]
 lint:
 	@echo "linting..."
 	@python3 -m pylint ${mn}
@@ -122,35 +126,35 @@ lint:
 ## run linting & formatting
 prettify: format lint
 
-## type inference[pyre]
+## type inference [pyre]
 type-infer:
 	@echo "inferring types..."
 	@pyre infer
 
-## type checking[pyre]
+## type checking [pyre]
 type-check:
 	@echo "checking types..."
 	@pyre
 
-## scan for dead code[vulture]
+## scan for dead code [vulture]
 scan-deadcode:
 	@echo "checking dead code..."
 	@vulture ${mn} || exit 0
 	@vulture ${tn} || exit 0
 
-## scan for security issues[bandit]
+## scan for security issues [bandit]
 scan-security:
 	@echo "checking for security issues..."
 	@bandit ${mn}
 #######
 
 # DOCS #
-## build docs - pdoc
+## build docs [pdoc]
 docs-build:
 	@echo "building docs..."
 	@python3 -m pdoc ${mn} -o docs
 
-## serve docs - pdoc
+## serve docs [pdoc]
 docs-serve:
 	@python3 -m pdoc ${mn}
 #######
