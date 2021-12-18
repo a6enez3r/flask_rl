@@ -1,0 +1,9 @@
+{
+  "source_directories": [
+    {
+      "import_root": ".",
+      "source": "flask_rl"
+    }
+  ],
+  "taint_models_path": "/usr/local/lib"
+}

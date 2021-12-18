@@ -10,8 +10,8 @@ with open("requirements/prod.txt") as f:
     requirements = f.read().splitlines()
 
 setup(
-    name='Flask-RL',
-    version='1.0',
+    name='flask_rl',
+    version='0.0.1',
     url='http://http://github.com/abmamo/flask_rl',
     license='BSD',
     author='Abenezer Mamo',
@@ -23,13 +23,4 @@ setup(
     include_package_data=True,
     platforms='any',
     install_requires=requirements,
-    classifiers=[
-        'Environment :: Web Environment',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
-        'Topic :: Software Development :: Libraries :: Python Modules'
-    ]
 )
