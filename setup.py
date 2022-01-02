@@ -6,7 +6,7 @@ flask rate limiter
 """
 from setuptools import setup
 
-with open("requirements/prod.txt") as f:
+with open("requirements/production.txt") as f:
     requirements = f.read().splitlines()
 
 setup(
