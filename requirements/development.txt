@@ -6,7 +6,7 @@ pytest==6.2.5
 pytest-cov==3.0.0
 black==21.12b0
 pylint==2.12.2
-pdoc==8.1.0
+pdoc==9.0.0
 pytest-profiling==1.7.0
 pyre-check==0.9.9
 bandit==1.7.1
