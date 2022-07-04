@@ -72,7 +72,7 @@ class FlaskRL:
         # return pickle db instance
         return self.cache
 
-    def _teardown(self, exception):  # pylint: disable=unused-argument,no-self-use
+    def _teardown(self, exception):  # pylint: disable=unused-argument
         """
         _teardown limiter
         """
