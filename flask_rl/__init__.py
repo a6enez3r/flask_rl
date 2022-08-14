@@ -15,7 +15,7 @@ from functools import wraps
 import geocoder
 import pickledb
 import notifiers
-from flask import _app_ctx_stack, request, abort
+import flask
 
 
 class FlaskRL:
@@ -77,7 +77,7 @@ class FlaskRL:
         _teardown limiter
         """
         # get app context
-        ctx = _app_ctx_stack.top
+        ctx = flask._app_ctx_stack.top # pylint: disable=protected-access
         # if app has limiter db in context
         if hasattr(ctx, "frl_db"):
             # dump / save
@@ -117,7 +117,7 @@ class FlaskRL:
         ***
         """
         # get app context
-        ctx = _app_ctx_stack.top
+        ctx = flask._app_ctx_stack.top # pylint: disable=protected-access
         if ctx is not None:
             # if app doesn't have limiter db in context
             if not hasattr(ctx, "frl_db"):
@@ -169,10 +169,10 @@ class FlaskRL:
             @wraps(func)
             def limiter_function(*args, **kwargs):
                 # get IP from request
-                ip_address = str(request.remote_addr)
+                ip_address = str(flask.request.remote_addr)
                 geoloc = geocoder.ip(ip_address)
                 # get route name from request
-                route_name = str(request.url_rule)
+                route_name = str(flask.request.url_rule)
                 # get cache / store
                 cache = self.connection()
                 # if ip doesn't exists in cache / store
@@ -213,7 +213,7 @@ class FlaskRL:
 
                                     ip: {ip_address}
 
-                                    route: {str(request.url_rule)}
+                                    route: {str(flask.request.url_rule)}
 
                                     country: {geoloc.country}
 
@@ -222,8 +222,8 @@ class FlaskRL:
                                 slack.notify(
                                     webhook_url=self.webhook_url, message=message
                                 )
-                        # abort with too many requests
-                        abort(429)
+                        # flask.abort with too many requests
+                        flask.abort(429)
                 return func(*args, **kwargs)
 
             return limiter_function
