@@ -17,6 +17,10 @@ import pickledb
 import notifiers
 import flask
 
+from flask_rl import _version
+
+__version__ = _version.get_versions()["version"]
+
 
 class FlaskRL:
     """
@@ -77,7 +81,7 @@ class FlaskRL:
         _teardown limiter
         """
         # get app context
-        ctx = flask._app_ctx_stack.top # pylint: disable=protected-access
+        ctx = flask._app_ctx_stack.top  # pylint: disable=protected-access
         # if app has limiter db in context
         if hasattr(ctx, "frl_db"):
             # dump / save
@@ -117,7 +121,7 @@ class FlaskRL:
         ***
         """
         # get app context
-        ctx = flask._app_ctx_stack.top # pylint: disable=protected-access
+        ctx = flask._app_ctx_stack.top  # pylint: disable=protected-access
         if ctx is not None:
             # if app doesn't have limiter db in context
             if not hasattr(ctx, "frl_db"):
