@@ -19,7 +19,7 @@ setup(
     name='flask_rl',
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
-    url='http://http://github.com/abmamo/flask_rl',
+    url='http://github.com/a6enez3r/flask_rl',
     author="Abenezer Mamo",
     author_email="hi@abenezer.sh",
     license="MIT",
