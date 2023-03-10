@@ -9,6 +9,6 @@ pylint==2.16.2
 pdoc==13.0.0
 pytest-profiling==1.7.0
 pyre-check==0.9.18
-bandit==1.7.4
+bandit==1.7.5
 vulture==2.7
 versioneer==0.28
