@@ -1,0 +1,10 @@
+kind: pipeline
+name: default
+
+steps:
+- name: test
+  image: python:3.10
+  commands:
+  - make deps
+  - make lint
+  - make test
