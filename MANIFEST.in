@@ -1,0 +1,7 @@
+include README.md
+include LICENSE
+include requirements/production.txt
+graft flask_rl
+recursive-exclude * *.py[co]
+include versioneer.py
+include flask_rl/_version.py
