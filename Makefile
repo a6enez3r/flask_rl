@@ -102,10 +102,10 @@ pull-remote:
 
 ## create new tag, recreate if it exists
 tag:
-	git tag -d ${version} || : 
-	git push --delete origin ${version} || : 
-	git tag -a ${version} -m "latest" 
-	git push origin --tags
+	@git tag -d ${version} || : 
+	@git push --delete origin ${version} || : 
+	@git tag -a ${version} -m "latest" 
+	@git push origin --tags
 
 ## -- python --
 
