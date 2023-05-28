@@ -52,12 +52,13 @@ this you can run the `example.py` app and refresh your browser *6* times to ensu
 ```
 
 `flask_rl` uses `pickleDB` for storage. you can specify the filename used for the rate limiter db as
-```
+
+```python
   from flask import Flask
-  from flask_rl import Limiter
+  from flask_rl import FlaskRL
 
   app = Flask(__name__)
-  limiter = Limiter(app, dbname=<abs or rel path to db>)
+  limiter = FlaskRL(app, dbname=<abs or rel path to db>)
   # or
   # limiter.init_app(app, dbname=<abs or rel path to db>)
   @app.route("/")
@@ -71,12 +72,12 @@ this you can run the `example.py` app and refresh your browser *6* times to ensu
 
 in addition, `flask_rl` supports sending `Slack` notifications about offending IP addresses. you just need to supply a valid `Slack` webhook URL
 
-```
+```python
   from flask import Flask
-  from flask_rl import Limiter
+  from flask_rl import FlaskRL
 
   app = Flask(__name__)
-  limiter = Limiter(app, webhook_url=<slack webhook url>)
+  limiter = FlaskRL(app, webhook_url=<slack webhook url>)
   # or
   # limiter.init_app(app, webhook_url=<slack webhook url>)
   @app.route("/")

@@ -197,11 +197,13 @@ class FlaskRL:
         If the IP address already exists in the cache, it updates the access time for the route.
         Then, it retrieves the access times for the route and checks if the limit has been reached.
         If the limit is exceeded, it sends a rate limit warning notification (if configured)
-        and returns a 429 Too Many Requests HTTP response. Otherwise, it calls the original route function.
+        and returns a 429 Too Many Requests HTTP response. Otherwise, it calls the original route
+        function.
 
         The rate limiting functionality is applied to the decorated Flask route.
 
-        Note: This decorator requires the `connection` method to be implemented and available in the `FlaskRL` class.
+        Note: This decorator requires the `connection` method to be implemented and available in
+        the `FlaskRL` class.
         """
 
         def decorator(func):
