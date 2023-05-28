@@ -1,5 +1,5 @@
 pn := flask_rl
-mn := src
+mn := src/flask_rl
 tn := tests
 
 ifeq ($(version),)
