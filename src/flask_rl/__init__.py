@@ -1,21 +1,22 @@
 """
-    flask_rl.py: simple flask rate limiter
+flask_rl.py: simple flask rate limiter
 
-    ***
-    **uses**
-    ***
+The rate limiter module allows you to set custom rate limits for different routes or endpoints in
+your Flask application, helping you manage and control the incoming traffic to your APIs.
 
-    pickledb: for storing access times
+Dependencies
+------------
 
-    window based approach to check limits
+    pickledb: for storing access times & leveraging a window based approach to check rate limits
 """
 import datetime
 from functools import wraps
+from typing import Optional
 
-import geocoder
-import pickledb
-import notifiers
 import flask
+import geocoder
+import notifiers
+import pickledb
 
 from flask_rl import _version
 
@@ -24,22 +25,28 @@ __version__ = _version.get_versions()["version"]
 
 class FlaskRL:
     """
-    rate limiter extension for Flask that uses windows-based approach
-    to limit access to routes. in the backend it uses pickleDB to store
-    ip addresses & their access times. the name of this pickleDB file
-    can be configured at initialization
+    Rate limiter extension for Flask that uses a window-based approach
+    to limit access to routes. It utilizes pickleDB to store IP addresses
+    and their access times. The name of the pickleDB file can be configured
+    during initialization.
     """
 
-    def __init__(self, app=None, dbname="limiter.db", webhook_url=None):
+    def __init__(
+        self,
+        app: flask.Flask = None,
+        dbname: str = "limiter.db",
+        webhook_url: Optional[str] = None,
+    ):
         """
-        initialize rate limiter
+        Initialize the rate limiter.
 
-        ***
-        **parameters**
-        ***
+        Args
+        ----
 
-        *app* : flask app
-        *dbname* : name of pickle db used to store access times
+            - app (Flask): flask.Flask application object.
+            - dbname (str): Name of the pickleDB file used to store access times.
+            - webhook_url (Optional[str]): Optional webhook URL for rate limit exceeded
+                                           notifications.
         """
         self.app = app
         self.dbname = dbname
@@ -49,20 +56,16 @@ class FlaskRL:
         if app is not None:
             self.init_app(app)
 
-    def init_app(self, app):
+    def init_app(self, app: flask.Flask):
         """
-        initialize rate limiter class as a flask extension
+        Initialize the rate limiter class as a Flask extension.
 
-        adds the name of the cache db into the flask app configuration
-        using the config var `FRL_DB`
+        Adds the name of the cache DB to the Flask app configuration
+        using the config variable `FRL_DB`.
 
-        ***
-        **parameters**
-        ***
-
-        *app*: flask app
-
-        ***
+        Args
+        ----
+            - app (Flask): flask.Flask application object.
         """
         # add name of limiter db to the flask app config
         app.config.setdefault("FRL_DB", self.dbname)
@@ -71,31 +74,30 @@ class FlaskRL:
 
     def _create(self):
         """
-        get pickledb instance
+        Get the PickleDB instance.
         """
-        # return pickle db instance
         return self.cache
 
     def _teardown(self, exception):  # pylint: disable=unused-argument
         """
-        _teardown limiter
+        Check if limiter is configured in the current application context &
+        tear it down
         """
-        # get app context
         ctx = flask._app_ctx_stack.top  # pylint: disable=protected-access
-        # if app has limiter db in context
+        # if app has limiter db in context dump / save any current info in memory
         if hasattr(ctx, "frl_db"):
-            # dump / save
             ctx.limiter_db.dump()
 
     def connection(self):  # pylint: disable=inconsistent-return-statements
         """
-        get connection to the limiter db
+        Get the connection to the limiter DB.
 
-        ***
-        **usage**
-        ***
-        you can use this method to access the IP addresses & access times
-        stored in pickleDB
+        This method can be used to access the IP addresses and access times
+        stored in the PickleDB.
+
+        Usage:
+        - You can use this method to retrieve all the IP addresses that have
+        accessed the application:
 
             flask_rl = FlaskRL()
 
@@ -103,11 +105,10 @@ class FlaskRL:
             @app.route("/ips", methods=["GET"])
             def ips():
                 cache = flask_rl.connection()
-                return cache.keys() # <- will return all the IP addresses that have
-                                    #    accessed the app
+                return cache.keys()
 
-        once you have a list of all the ip addresses you can get the access times
-        for a specific IP address using
+        - Once you have a list of all the IP addresses, you can get the access times
+        for a specific IP address:
 
             flask_rl = FlaskRL()
 
@@ -117,15 +118,14 @@ class FlaskRL:
                 cache = flask_rl.connection()
                 return cache(ip_address)
 
-        this will return a `key:value` tuple of the form `(<route_name>:<list of access_times>)`
-        ***
+        This will return a `key:value` tuple of the form `(<route_name>:<list of access_times>)`.
+
+        :return: Connection to the limiter DB.
         """
-        # get app context
         ctx = flask._app_ctx_stack.top  # pylint: disable=protected-access
         if ctx is not None:
-            # if app doesn't have limiter db in context
+            # if app doesn't have limiter db in context inject limiter db to config / context
             if not hasattr(ctx, "frl_db"):
-                # add limiter db to context
                 ctx.limiter_db = self._create()
             return ctx.limiter_db
 
@@ -155,18 +155,53 @@ class FlaskRL:
         ]
         return len(num_requests) > limit
 
-    def limit(self, limit=None, period=None):
+    def limit(self, limit: Optional[int] = None, period: Optional[int] = None):
         """
-        rate limiting decorator for a flask endpoint
+        Decorator for rate limiting a Flask endpoint.
 
-        ***
-        **parameters**
-        ***
+        Usage
+        -----
+            Apply this decorator to a Flask route to enforce rate limits on that route.
 
-        *limit* : number of request allowed in a given period
+        Parameters
+        ----------
+            - limit (Optional[int]): The number of requests allowed in a given period.
+            - period (Optional[int]): The time period in seconds during which the limit applies.
 
-        *period* : how often an endpoint
-        ***
+        Returns
+        -------
+            The decorated function.
+
+        Example
+        -------
+            flask_rl = FlaskRL()
+
+            @flask_rl.limit(limit=5, period=60)
+            @app.route("/protected", methods=["GET"])
+            def protected_route():
+                return "This is a protected route."
+
+        The `limit` decorator can be applied to a Flask route to enforce rate limits on that route.
+        It checks the number of requests made by the client IP address within the specified period.
+        If the limit is reached, it sends a rate limit warning notification (if configured) and
+        returns a 429 Too Many Requests HTTP response.
+
+        The `limit` decorator takes two optional arguments: `limit` and `period`.
+        - `limit` specifies the maximum number of requests allowed within the given period.
+        - `period` specifies the time duration in seconds during which the limit applies.
+
+        The decorator function wraps the original Flask route function.
+        Within the wrapper function, it retrieves the client's IP address, the route name,
+        and the limiter cache/connection. It checks whether the IP address exists in the cache,
+        and if not, it adds the IP address with the current access time to the cache.
+        If the IP address already exists in the cache, it updates the access time for the route.
+        Then, it retrieves the access times for the route and checks if the limit has been reached.
+        If the limit is exceeded, it sends a rate limit warning notification (if configured)
+        and returns a 429 Too Many Requests HTTP response. Otherwise, it calls the original route function.
+
+        The rate limiting functionality is applied to the decorated Flask route.
+
+        Note: This decorator requires the `connection` method to be implemented and available in the `FlaskRL` class.
         """
 
         def decorator(func):
@@ -179,27 +214,20 @@ class FlaskRL:
                 route_name = str(flask.request.url_rule)
                 # get cache / store
                 cache = self.connection()
-                # if ip doesn't exists in cache / store
+                # if ip doesn't exists in cache / store add to cache with access time
                 if not cache.exists(ip_address):
-                    # get current time
                     cur_time = datetime.datetime.now().strftime(self.date_format)
-                    # add access time to list
                     cache.set(ip_address, {route_name: [cur_time]})
-                # if ip exists in cache / store
+                # if ip exists in cache / store get current time and update the cache
                 else:
-                    # get current time
                     cur_time = datetime.datetime.now().strftime(self.date_format)
                     # if route hasn't been accessed before
                     if not cache.dexists(ip_address, route_name):
-                        # add info to cache
                         cache.dadd(ip_address, (route_name, [cur_time]))
                     # if route has been accessed before
                     else:
-                        # get access times
                         access_times = cache.dget(ip_address, route_name)
-                        # add current access time to old access times
                         access_times.append(cur_time)
-                        # update access times in key val storage
                         cache.drem(ip_address)
                         cache.dcreate(ip_address)
                         cache.dadd(ip_address, (route_name, access_times))

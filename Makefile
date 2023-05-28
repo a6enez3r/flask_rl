@@ -1,5 +1,5 @@
 pn := flask_rl
-mn := flask_rl
+mn := src
 tn := tests
 
 ifeq ($(version),)
@@ -16,6 +16,9 @@ pytest_opts := -vv
 endif
 ifeq ($(dep_type),)
 dep_type := development
+endif
+ifeq ($(container_tag),)
+container_tag := ${dep_type}
 endif
 ifeq ($(durations),)
 durations := 10
@@ -104,7 +107,7 @@ pull-remote:
 tag:
 	@git tag -d ${version} || : 
 	@git push --delete origin ${version} || : 
-	@git tag -a ${version} -m "latest" 
+	@git tag -a ${version} -m "latest version" 
 	@git push origin --tags
 
 ## -- python --
@@ -113,19 +116,20 @@ tag:
 pkg-build:
 	@echo "building..." && python3 setup.py build
 
-## install package
+## install package [pkg_type = editable | noneditable]
 pkg-install:
 	@echo "installing..." && python3 setup.py ${pkg_type}
 
 ## install package dependencies [dep_type = development | production]
 deps:
 	@python3 -m pip install --upgrade pip setuptools wheel
+	@python3 -m pip install .
 	@if [ -f requirements/${dep_type}.txt ]; then pip install -r requirements/${dep_type}.txt; fi
 
 ## run tests [pytest]
 test:
 	@echo "running tests..."
-	@python3 -m pytest --durations=${duration} --cov-report term-missing --cov=${mn} ${tn} ${pytest_opts}
+	@python3 -m pytest --durations=${durations} --cov-report term-missing --cov=${mn} ${tn} ${pytest_opts}
 
 ## -- code quality --
 
@@ -137,6 +141,10 @@ profile:
 ## run formatting [black]
 format:
 	@echo "formatting..."
+	@python3 -m isort ${mn}
+	@python3 -m isort ${tn}
+	@sort-requirements requirements/development.txt
+	@sort-requirements requirements/production.txt
 	@python3 -m black ${mn}
 	@python3 -m black ${tn}
 
@@ -180,3 +188,15 @@ docs-build:
 ## serve docs [pdoc]
 docs-serve:
 	@python3 -m pdoc ${mn}
+
+## -- docker --
+
+## build image [docker]
+build-env:
+	@echo "building image..."
+	@docker build . -t ${pn}:${container_tag}
+
+## build & push image [docker]
+push-env:
+	@make build-env
+	@docker push ${pn}:${container_tag}
