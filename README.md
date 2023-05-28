@@ -8,7 +8,7 @@ window based flask rate limiting extension
 
 ```shell
   git clone https://github.com/a6enez3r/flask_rl
-  cd automerge
+  cd flask_rl
 ```
 
 - Create a virtual environment & install all dependencies
