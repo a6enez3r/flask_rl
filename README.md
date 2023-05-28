@@ -1,4 +1,4 @@
-# `flask_rl` ![build](https://github.com/abmamo/flask_rl/workflows/build/badge.svg?branch=main)
+# `flask_rl` [![pipeline](https://github.com/a6enez3r/flask_rl/actions/workflows/pipeline.yml/badge.svg)](https://github.com/a6enez3r/flask_rl/actions/workflows/pipeline.yml)
 
 window based flask rate limiting extension
 
