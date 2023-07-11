@@ -1,5 +1,5 @@
 bandit==1.7.5
-black==23.3.0
+black==23.7.0
 flake8==6.0.0
 Flask==2.3.2
 geocoder==1.38.1
